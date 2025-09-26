@@ -3,689 +3,426 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>混凝土工程管理系統 (Google Drive 版)</title>
+    <title>混凝土澆置回報 App (完整日報版)</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', 'Noto Sans TC', sans-serif; background-color: #f0f2f5; }
-        .btn { transition: all 0.2s ease-in-out; }
-        .btn:active { transform: scale(0.97); }
-        .table-wrapper { max-height: 450px; overflow-y: auto; }
-        .table-wrapper::-webkit-scrollbar { width: 6px; }
-        .table-wrapper::-webkit-scrollbar-track { background: #f1f1f1; }
-        .table-wrapper::-webkit-scrollbar-thumb { background: #a8a8a8; border-radius: 3px; }
-        .table-wrapper::-webkit-scrollbar-thumb:hover { background: #7a7a7a; }
-        .form-input { transition: all 0.3s ease; }
-        .form-input:focus { box-shadow: 0 0 0 2px #3b82f6; border-color: #3b82f6; }
-        .modal-backdrop { transition: opacity 0.3s ease; }
-        .modal-content { transition: transform 0.3s ease; }
-        .status-dot { height: 10px; width: 10px; border-radius: 50%; display: inline-block; margin-right: 6px; animation: pulse 2s infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        body {
+            font-family: 'Inter', 'Noto Sans TC', sans-serif;
+        }
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+        input[type="date"]::-webkit-calendar-picker-indicator,
+        input[type="time"]::-webkit-calendar-picker-indicator {
+            cursor: pointer;
+            filter: invert(0.8) brightness(100%);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #1f2937;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #4b5563;
+            border-radius: 3px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #6b7280;
+        }
+        /* 鎖定時的樣式 */
+        .info-locked .info-input {
+            padding-top: 0.25rem;
+            padding-bottom: 0.25rem;
+            background-color: #374151; /* bg-gray-700 */
+        }
+        .info-locked > div {
+             margin-bottom: 0.5rem; /* 縮小間距 */
+        }
     </style>
 </head>
-<body class="antialiased text-gray-800">
+<body class="bg-gray-900 text-white flex items-center justify-center min-h-screen p-4">
 
-    <div id="alert-container" class="fixed top-5 right-5 z-50 space-y-2"></div>
-
-    <div class="container mx-auto p-4 md:p-8 max-w-7xl">
-
-        <!-- Login Section -->
-        <div id="loginSection" class="max-w-md mx-auto bg-white p-8 rounded-xl shadow-lg text-center">
-            <h2 class="text-3xl font-bold text-gray-900 mb-4">混凝土工程管理系統</h2>
-            <p class="text-gray-600 mb-8">資料將儲存至您的 Google Drive</p>
-            <button id="authorize_button" class="btn w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">
-                <svg class="w-5 h-5 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48px" height="48px"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.42-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/><path fill="none" d="M0 0h48v48H0z"/></svg>
-                使用 Google 帳號登入
-            </button>
-            <p id="loginError" class="text-red-500 text-sm mt-4 hidden"></p>
+    <div class="w-full max-w-md bg-gray-800 rounded-2xl shadow-2xl p-6 md:p-8 flex flex-col h-[95vh] max-h-[900px]">
+        <!-- 標題 -->
+        <div class="text-center mb-4">
+            <h1 class="text-2xl md:text-3xl font-bold text-cyan-400">混凝土澆置回報</h1>
         </div>
-
-        <div id="appContainer" class="hidden">
-            <header class="mb-8 text-center relative">
-                <h1 class="text-3xl md:text-4xl font-bold text-gray-900">混凝土工程管理App</h1>
-                <p class="text-gray-600 mt-2">整合澆置紀錄、車輛追蹤與智慧試體提醒</p>
-                <div class="absolute top-0 right-0 flex flex-col items-end space-y-2">
-                     <div id="syncStatus" class="text-sm text-gray-500 bg-gray-100 p-2 rounded-md inline-flex items-center"><span class="status-dot bg-yellow-400"></span><span id="syncStatusText">連線中...</span></div>
-                    <div id="userInfo" class="text-sm text-gray-500 bg-gray-100 p-2 rounded-md inline-block">載入使用者資訊...</div>
-                    <button id="logoutButton" class="text-xs text-red-500 hover:underline">登出</button>
+        
+        <!-- 主要資訊輸入欄 -->
+        <div class="relative bg-gray-700/50 p-4 rounded-lg space-y-4 mb-4 transition-all duration-300" id="main-info-section">
+            <button id="toggle-info-lock-btn" class="absolute top-3 right-3 text-gray-400 hover:text-white p-1 rounded-full">
+                <!-- SVG 圖示會由 JS 切換 -->
+            </button>
+            <div>
+                <label for="report-date" class="text-sm text-gray-400">日期</label>
+                <input type="date" id="report-date" class="info-input mt-1 bg-gray-800 border-gray-600 text-white text-base rounded-lg focus:ring-cyan-500 focus:border-cyan-500 block w-full p-2 font-semibold transition-all duration-300">
+            </div>
+            <div>
+                <label for="location" class="text-sm text-gray-400">澆置位置</label>
+                <input type="text" id="location" value="8F柱牆 / 9F樑板區" class="info-input mt-1 bg-gray-800 border-gray-600 text-white text-base rounded-lg focus:ring-cyan-500 focus:border-cyan-500 block w-full p-2 font-semibold transition-all duration-300">
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label for="start-time" class="text-sm text-gray-400">開始時間</label>
+                    <input type="time" id="start-time" class="info-input mt-1 bg-gray-800 border-gray-600 text-white text-base rounded-lg focus:ring-cyan-500 focus:border-cyan-500 block w-full p-2 font-semibold transition-all duration-300">
                 </div>
-            </header>
-
-            <div id="dailySetupSection" class="bg-white p-6 rounded-xl shadow-lg mb-8">
-                <h2 class="text-2xl font-semibold mb-4">每日工班設定</h2>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-                    <div><label for="dailyProjectName" class="block text-sm font-medium text-gray-700">工程名稱</label><input type="text" id="dailyProjectName" class="form-input mt-1 block w-full" placeholder="例如：惠民安居"></div>
-                    <div><label for="dailySupplier" class="block text-sm font-medium text-gray-700">供應商</label><input type="text" id="dailySupplier" class="form-input mt-1 block w-full" placeholder="例如：國產"></div>
-                    <button id="startDayButton" class="btn w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-md shadow-md">開始今日作業</button>
+                <div>
+                    <label for="estimated-total" class="text-sm text-gray-400">預計總數 (M³)</label>
+                    <input type="number" id="estimated-total" value="625" class="info-input mt-1 bg-gray-800 border-gray-600 text-white text-base rounded-lg focus:ring-cyan-500 focus:border-cyan-500 block w-full p-2 font-semibold transition-all duration-300">
                 </div>
             </div>
-            
-            <main id="mainApp" class="hidden grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div class="lg:col-span-1 space-y-8">
-                    <div class="bg-white p-6 rounded-xl shadow-lg">
-                        <h2 class="text-2xl font-semibold mb-4 border-b pb-3">當前澆置狀態</h2>
-                        <div class="space-y-2"><p class="text-gray-600"><strong>工程：</strong><span id="displayProjectName"></span></p><p class="text-gray-600"><strong>廠商：</strong><span id="displaySupplier"></span></p><button id="changeSettingsButton" class="text-xs text-blue-500 hover:underline">修改設定</button></div>
-                        <div id="pouringStatus" class="mt-4 space-y-3 text-gray-700">
-                            <p>請在下方表單輸入澆置位置以追蹤進度。</p>
-                            <div class="text-lg font-bold">今日累計方數：<span id="totalVolumeToday" class="text-blue-600">0 m³</span></div>
-                            <div id="specimenAlerts"></div>
-                            <div id="slumpCheckReminder" class="hidden mt-2 p-3 rounded-md bg-yellow-100 text-yellow-800 font-bold text-center">請辦理坍度自檢 (非強制)</div>
-                            <div id="delayedSampleReminder" class="hidden mt-2 p-3 rounded-md bg-red-100 text-red-800 font-bold text-center">延後的試體尚未取樣！</div>
-                        </div>
-                    </div>
-
-                    <div class="bg-white p-6 rounded-xl shadow-lg">
-                        <h2 class="text-2xl font-semibold mb-6 border-b pb-3">登記車輛</h2>
-                        <form id="addTruckForm" class="space-y-4">
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                 <div><label for="pourLocation" class="block text-sm font-medium text-gray-700">澆置位置</label><input type="text" id="pourLocation" required class="form-input mt-1 block w-full" placeholder="B1F 版、柱"></div>
-                                <div><label for="mixingTime" class="block text-sm font-medium text-gray-700">拌合時間</label><input type="time" id="mixingTime" required class="form-input mt-1 block w-full"></div>
-                            </div>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div><label for="truckNumber" class="block text-sm font-medium text-gray-700">車號</label><input type="text" id="truckNumber" required class="form-input mt-1 block w-full" placeholder="ABC-1234"></div>
-                                <div><label for="volume" class="block text-sm font-medium text-gray-700">方數 (m³)</label><input type="number" id="volume" step="0.1" required class="form-input mt-1 block w-full" placeholder="6.5"></div>
-                            </div>
-                            <div><label for="concreteStrength" class="block text-sm font-medium text-gray-700">強度 (kgf/cm²)</label><input type="text" id="concreteStrength" required class="form-input mt-1 block w-full" placeholder="280"></div>
-                            
-                            <div id="samplingOptions" class="hidden space-y-2 p-3 bg-gray-50 rounded-md">
-                                <label class="flex items-center"><input type="checkbox" id="earlySampleCheckbox" class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"><span class="ml-2 text-sm text-gray-900">提前取樣</span></label>
-                                <label class="flex items-center"><input type="checkbox" id="delaySampleCheckbox" class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"><span class="ml-2 text-sm text-gray-900">延後取樣 (1-2車)</span></label>
-                            </div>
-
-                            <div id="slumpField" class="hidden">
-                                <label for="slump" class="block text-sm font-medium text-gray-700">坍度 (cm)</label>
-                                <input type="text" id="slump" class="form-input mt-1 block w-full" placeholder="15">
-                            </div>
-                            <div id="otherSamplingFields" class="hidden grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div><label for="chloride" class="block text-sm font-medium text-gray-700">氯離子</label><input type="text" id="chloride" class="form-input mt-1 block w-full" placeholder="0.15"></div>
-                                 <div><label for="temperature" class="block text-sm font-medium text-gray-700">溫度 (°C)</label><input type="text" id="temperature" class="form-input mt-1 block w-full" placeholder="30"></div>
-                            </div>
-
-                            <div><label for="remarks" class="block text-sm font-medium text-gray-700">備註</label><textarea id="remarks" rows="2" class="form-input mt-1 block w-full" placeholder="任何特殊事項..."></textarea></div>
-                            <button type="submit" id="submitButton" class="btn w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-md shadow-md">登記進場</button>
-                        </form>
-                    </div>
+             <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label for="end-time" class="text-sm text-gray-400">完成時間 (選填)</label>
+                    <input type="time" id="end-time" class="info-input mt-1 bg-gray-800 border-gray-600 text-white text-base rounded-lg focus:ring-cyan-500 focus:border-cyan-500 block w-full p-2 font-semibold transition-all duration-300">
                 </div>
-                
-                <div class="lg:col-span-2 space-y-8">
-                    <div class="bg-white p-6 rounded-xl shadow-lg">
-                        <h2 class="text-2xl font-semibold mb-4 text-blue-700">場內車輛</h2>
-                        <div class="overflow-x-auto"><table class="w-full text-sm text-left text-gray-500"><thead class="text-xs text-gray-700 uppercase bg-gray-50"><tr><th scope="col" class="px-4 py-3">車號</th><th scope="col" class="px-4 py-3">澆置位置</th><th scope="col" class="px-4 py-3">方數</th><th scope="col" class="px-4 py-3">進場時間</th><th scope="col" class="px-4 py-3">操作</th></tr></thead><tbody id="onSiteTableBody"></tbody></table></div>
-                    </div>
-                    <div class="bg-white p-6 rounded-xl shadow-lg">
-                        <div class="flex justify-between items-center mb-4">
-                            <h2 class="text-2xl font-semibold text-gray-600">離場紀錄</h2>
-                            <button id="exportButton" class="btn bg-blue-500 hover:bg-blue-600 text-white text-sm font-bold py-2 px-4 rounded-md shadow-md flex items-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>匯出今日紀錄 (Excel)</button>
-                        </div>
-                        <div class="table-wrapper overflow-x-auto"><table class="w-full text-sm text-left text-gray-500"><thead class="text-xs text-gray-700 uppercase bg-gray-50 sticky top-0"><tr><th scope="col" class="px-4 py-3">車號</th><th scope="col" class="px-4 py-3">澆置位置</th><th scope="col" class="px-4 py-3">進場</th><th scope="col" class="px-4 py-3">離場</th><th scope="col" class="px-4 py-3">停留時間</th><th scope="col" class="px-4 py-3">操作</th></tr></thead><tbody id="historyTableBody"></tbody></table></div>
-                    </div>
+                <div id="actual-total-container" class="hidden">
+                    <label class="text-sm text-gray-400">實際總數 (M³)</label>
+                    <p id="actual-total" class="mt-1 bg-gray-900 text-green-400 text-base rounded-lg block w-full p-2 font-bold h-[42px] flex items-center"></p>
                 </div>
-            </main>
+            </div>
+        </div>
+
+        <!-- 總計數據 -->
+        <div class="grid grid-cols-2 gap-4 text-center mb-4">
+            <div class="bg-gray-900 p-4 rounded-lg">
+                <p class="text-sm text-gray-400">累積出車</p>
+                <p id="total-trucks" class="text-3xl font-bold text-amber-400">0</p>
+            </div>
+            <div class="bg-gray-900 p-4 rounded-lg">
+                <p class="text-sm text-gray-400">累積澆置數量</p>
+                <p id="total-volume" class="text-3xl font-bold text-green-400">0.0</p>
+            </div>
+        </div>
+
+        <!-- 新增車次按鈕 -->
+        <div class="mb-4">
+            <button id="add-truck-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition-transform transform active:scale-95 flex items-center justify-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0-0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg>
+                新增一車紀錄
+            </button>
+        </div>
+
+        <!-- 車次列表 -->
+        <div id="truck-list-container" class="flex-grow bg-gray-900/50 p-3 rounded-lg overflow-y-auto custom-scrollbar space-y-2 min-h-[150px]"></div>
+
+        <!-- 底部操作按鈕 -->
+        <div class="mt-4 pt-4 border-t border-gray-700 grid grid-cols-2 gap-4">
+            <button id="reset-all" class="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-4 rounded-lg">全部重設</button>
+            <button id="copy-report-btn" class="w-full bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0-0 20 20" fill="currentColor"><path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" /><path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2H6zM8 7a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1zm-1 4a1 1 0 100 2h4a1 1 0 100-2H7z" /></svg>
+                <span id="copy-text">複製回報</span>
+            </button>
         </div>
     </div>
-    
-    <!-- Modals -->
-    <div id="departureModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 h-full w-full hidden modal-backdrop z-10"><div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white modal-content transform scale-95"><div class="mt-3 text-center"><h3 class="text-lg leading-6 font-medium text-gray-900">確認離場</h3><div class="mt-2 px-7 py-3"><p class="text-sm text-gray-500" id="modalTruckInfo"></p></div><div class="items-center px-4 py-3 gap-2 flex"><button id="cancelDepartureButton" class="btn px-4 py-2 bg-gray-200 text-gray-800 rounded-md w-full shadow-sm hover:bg-gray-300">取消</button><button id="confirmDepartureButton" class="btn px-4 py-2 bg-red-500 text-white rounded-md w-full shadow-sm hover:bg-red-600">確認離場</button></div></div></div></div>
-    <div id="timeoutModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 h-full w-full hidden modal-backdrop z-20"><div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white modal-content transform scale-95"><div class="mt-3 text-center"><div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-yellow-100"><svg class="h-6 w-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg></div><h3 class="text-lg leading-6 font-medium text-gray-900 mt-2">拌合超時警告</h3><div class="mt-2 px-7 py-3"><p class="text-sm text-gray-500">拌合超時，是否退料，請聯繫主管恩！？</p></div><div class="items-center px-4 py-3 gap-2 flex"><button id="cancelTimeoutButton" class="btn px-4 py-2 bg-gray-200 text-gray-800 rounded-md w-full shadow-sm hover:bg-gray-300">取消登記</button><button id="confirmTimeoutButton" class="btn px-4 py-2 bg-yellow-500 text-white rounded-md w-full shadow-sm hover:bg-yellow-600">強制進場</button></div></div></div></div>
-    <div id="editModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 h-full w-full hidden modal-backdrop z-30"><div class="relative top-10 mx-auto p-5 border w-full max-w-lg shadow-lg rounded-md bg-white modal-content transform scale-95"><form id="editTruckForm" class="space-y-4"><h3 class="text-xl leading-6 font-medium text-gray-900">編輯紀錄</h3><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div><label for="edit_pourLocation" class="block text-sm font-medium text-gray-700">澆置位置</label><input type="text" id="edit_pourLocation" required class="form-input mt-1 block w-full"></div><div><label for="edit_mixingTime" class="block text-sm font-medium text-gray-700">拌合時間</label><input type="time" id="edit_mixingTime" required class="form-input mt-1 block w-full"></div></div><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div><label for="edit_truckNumber" class="block text-sm font-medium text-gray-700">車號</label><input type="text" id="edit_truckNumber" required class="form-input mt-1 block w-full"></div><div><label for="edit_volume" class="block text-sm font-medium text-gray-700">方數 (m³)</label><input type="number" id="edit_volume" step="0.1" required class="form-input mt-1 block w-full"></div></div><div><label for="edit_concreteStrength" class="block text-sm font-medium text-gray-700">強度 (kgf/cm²)</label><input type="text" id="edit_concreteStrength" required class="form-input mt-1 block w-full"></div><div class="grid grid-cols-1 md:grid-cols-3 gap-4"><div><label for="edit_slump" class="block text-sm font-medium text-gray-700">坍度 (cm)</label><input type="text" id="edit_slump" class="form-input mt-1 block w-full"></div><div><label for="edit_chloride" class="block text-sm font-medium text-gray-700">氯離子</label><input type="text" id="edit_chloride" class="form-input mt-1 block w-full"></div><div><label for="edit_temperature" class="block text-sm font-medium text-gray-700">溫度 (°C)</label><input type="text" id="edit_temperature" class="form-input mt-1 block w-full"></div></div><div><label for="edit_remarks" class="block text-sm font-medium text-gray-700">備註</label><textarea id="edit_remarks" rows="2" class="form-input mt-1 block w-full"></textarea></div><div class="items-center pt-3 gap-2 flex"><button id="cancelEditButton" type="button" class="btn px-4 py-2 bg-gray-200 text-gray-800 rounded-md w-full shadow-sm hover:bg-gray-300">取消</button><button type="submit" class="btn px-4 py-2 bg-green-600 text-white rounded-md w-full shadow-sm hover:bg-green-700">儲存變更</button></div></form></div></div>
-    <div id="alertModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 h-full w-full hidden modal-backdrop z-40"><div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white modal-content transform scale-95"><div class="mt-3 text-center"><h3 class="text-lg leading-6 font-medium text-gray-900" id="alertModalTitle">提示</h3><div class="mt-2 px-7 py-3"><p class="text-sm text-gray-500" id="alertModalMessage"></p></div><div class="items-center px-4 py-3"><button id="alertModalOkButton" class="btn px-4 py-2 bg-blue-500 text-white rounded-md w-full shadow-sm hover:bg-blue-600">確定</button></div></div></div></div>
 
-    <script src="https://apis.google.com/js/api.js"></script>
+    <!-- 複製預覽 Modal -->
+    <div id="copy-preview-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50" style="display: none;">
+        <div class="bg-gray-800 rounded-2xl shadow-2xl p-6 w-full max-w-lg max-h-[80vh] flex flex-col">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold text-cyan-400">回報內容預覽</h2>
+                <button id="close-modal-btn" class="text-gray-400 hover:text-white text-2xl">&times;</button>
+            </div>
+            <pre id="report-preview-content" class="flex-grow bg-gray-900/70 p-4 rounded-lg overflow-y-auto whitespace-pre-wrap text-white"></pre>
+            <div class="mt-4 flex gap-4">
+                 <button id="cancel-copy-btn" class="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg">取消</button>
+                <button id="confirm-copy-btn" class="w-full bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 px-4 rounded-lg">確認複製</button>
+            </div>
+        </div>
+    </div>
+
     <script>
-        // --- Google Drive API Configuration ---
-        // 重要！請將以下資訊替換成您自己的金鑰
-        // 1. 前往 https://console.cloud.google.com/
-        // 2. 建立新專案，並啟用 Google Drive API
-        // 3. 建立 OAuth 2.0 用戶端 ID (選擇 網頁應用程式)
-        // 4. 建立 API 金鑰
-        const API_KEY = 'YOUR_API_KEY'; // 在這裡貼上您的 API 金鑰
-        const CLIENT_ID = 'YOUR_CLIENT_ID.apps.googleusercontent.com'; // 在這裡貼上您的用戶端 ID
+        // DOM 元素
+        const mainInfoSection = document.getElementById('main-info-section');
+        const toggleLockBtn = document.getElementById('toggle-info-lock-btn');
+        const reportDateEl = document.getElementById('report-date');
+        const locationEl = document.getElementById('location');
+        const startTimeEl = document.getElementById('start-time');
+        const estimatedTotalEl = document.getElementById('estimated-total');
+        const endTimeEl = document.getElementById('end-time');
+        const actualTotalContainer = document.getElementById('actual-total-container');
+        const actualTotalEl = document.getElementById('actual-total');
+        const addTruckBtn = document.getElementById('add-truck-btn');
+        const truckListContainer = document.getElementById('truck-list-container');
+        const totalTrucksEl = document.getElementById('total-trucks');
+        const totalVolumeEl = document.getElementById('total-volume');
+        const copyBtn = document.getElementById('copy-report-btn');
+        const copyTextEl = document.getElementById('copy-text');
+        const resetBtn = document.getElementById('reset-all');
+        const copyPreviewModal = document.getElementById('copy-preview-modal');
+        const closeModalBtn = document.getElementById('close-modal-btn');
+        const cancelCopyBtn = document.getElementById('cancel-copy-btn');
+        const confirmCopyBtn = document.getElementById('confirm-copy-btn');
+        const reportPreviewContent = document.getElementById('report-preview-content');
 
-        const DISCOVERY_DOC = 'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest';
-        const SCOPES = 'https://www.googleapis.com/auth/drive.file';
-        const DATA_FILE_NAME = 'concrete_app_data.json';
+        let truckCounter = 0;
+        let isInfoLocked = false;
 
-        let tokenClient;
-        let gapiInited = false;
-        let gisInited = false;
-        let fileId = null;
+        const lockIcon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>`;
+        const unlockIcon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" /></svg>`;
 
-        // --- DOM Elements ---
-        const loginSection = document.getElementById('loginSection');
-        const appContainer = document.getElementById('appContainer');
-        const authorize_button = document.getElementById('authorize_button');
-        const logoutButton = document.getElementById('logoutButton');
+        // --- 儲存與載入功能 ---
+        function getStorageKey() {
+            return `concreteData-${reportDateEl.value}`;
+        }
+
+        function saveData() {
+            const truckVolumes = Array.from(truckListContainer.querySelectorAll('.truck-volume-input')).map(input => input.value);
+            const data = {
+                location: locationEl.value,
+                startTime: startTimeEl.value,
+                estimatedTotal: estimatedTotalEl.value,
+                endTime: endTimeEl.value,
+                trucks: truckVolumes,
+                isLocked: isInfoLocked
+            };
+            localStorage.setItem(getStorageKey(), JSON.stringify(data));
+        }
+
+        function loadData() {
+            clearTruckList();
+            const dataString = localStorage.getItem(getStorageKey());
+            if (dataString) {
+                const data = JSON.parse(dataString);
+                locationEl.value = data.location || '8F柱牆 / 9F樑板區';
+                startTimeEl.value = data.startTime || '';
+                estimatedTotalEl.value = data.estimatedTotal || '625';
+                endTimeEl.value = data.endTime || '';
+                
+                if (data.trucks && Array.isArray(data.trucks)) {
+                    data.trucks.forEach(volume => addTruckEntry(volume));
+                }
+
+                if (data.isLocked && !isInfoLocked) {
+                    toggleInfoLock();
+                } else if (!data.isLocked && isInfoLocked) {
+                    toggleInfoLock();
+                }
+                
+                endTimeEl.dispatchEvent(new Event('input'));
+            }
+            updateTotals();
+        }
         
-        let allTrucksCache = [];
-        let truckIdToDepart = null;
-        let recordIdToEdit = null;
-        let pourLocationStates = {};
-
-        const dailySetupSection = document.getElementById('dailySetupSection');
-        const mainApp = document.getElementById('mainApp');
-        const startDayButton = document.getElementById('startDayButton');
-        const changeSettingsButton = document.getElementById('changeSettingsButton');
-        const departureModal = document.getElementById('departureModal');
-        const confirmDepartureButton = document.getElementById('confirmDepartureButton');
-        const cancelDepartureButton = document.getElementById('cancelDepartureButton');
-        const timeoutModal = document.getElementById('timeoutModal');
-        const confirmTimeoutButton = document.getElementById('confirmTimeoutButton');
-        const cancelTimeoutButton = document.getElementById('cancelTimeoutButton');
-        const editModal = document.getElementById('editModal');
-        const cancelEditButton = document.getElementById('cancelEditButton');
-        const exportButton = document.getElementById('exportButton');
-        const alertModal = document.getElementById('alertModal');
-        const alertModalOkButton = document.getElementById('alertModalOkButton');
-
-        function gapiLoaded() { gapi.load('client', initializeGapiClient); }
-        async function initializeGapiClient() {
-            await gapi.client.init({ apiKey: API_KEY, discoveryDocs: [DISCOVERY_DOC] });
-            gapiInited = true;
-            maybeEnableButtons();
+        function clearTruckList() {
+            truckListContainer.innerHTML = '';
+            truckCounter = 0;
         }
-        function gisLoaded() {
-            tokenClient = google.accounts.oauth2.initTokenClient({
-                client_id: CLIENT_ID,
-                scope: SCOPES,
-                callback: '', // defined later
+
+        // --- 初始化函數 ---
+        function initializeApp() {
+            setTodayDate();
+            toggleLockBtn.innerHTML = unlockIcon;
+        }
+        
+        function setTodayDate() {
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            reportDateEl.value = `${year}-${month}-${day}`;
+            reportDateEl.dispatchEvent(new Event('input'));
+        }
+
+        function setNowTime(event) {
+             if (!event.target.value) {
+                const now = new Date();
+                const hours = String(now.getHours()).padStart(2, '0');
+                const minutes = String(now.getMinutes()).padStart(2, '0');
+                event.target.value = `${hours}:${minutes}`;
+                saveData();
+            }
+        }
+
+        // --- 更新總計數據 ---
+        function updateTotals() {
+            const allTruckInputs = truckListContainer.querySelectorAll('.truck-volume-input');
+            let currentTotalVolume = 0;
+            allTruckInputs.forEach(input => {
+                currentTotalVolume += parseFloat(input.value) || 0;
             });
-            gisInited = true;
-            maybeEnableButtons();
-        }
-        function maybeEnableButtons() {
-            if (gapiInited && gisInited) {
-                authorize_button.disabled = false;
-            }
+
+            const totalVolumeFixed = currentTotalVolume.toFixed(2);
+            totalTrucksEl.textContent = allTruckInputs.length;
+            totalVolumeEl.textContent = totalVolumeFixed;
+            actualTotalEl.textContent = totalVolumeFixed;
         }
 
-        function handleAuthClick() {
-            tokenClient.callback = async (resp) => {
-                if (resp.error !== undefined) { throw (resp); }
-                loginSection.classList.add('hidden');
-                appContainer.classList.remove('hidden');
-                await loadDataFile();
-            };
-            if (gapi.client.getToken() === null) {
-                tokenClient.requestAccessToken({prompt: 'consent'});
+        // --- 新增車次紀錄 ---
+        function addTruckEntry(volume = '') {
+            truckCounter++;
+            const truckEntry = document.createElement('div');
+            truckEntry.className = 'truck-entry flex items-center bg-gray-700 p-3 rounded-lg gap-3';
+            truckEntry.innerHTML = `
+                <span class="font-bold text-gray-300 w-16 text-center text-lg">車次 ${truckCounter}</span>
+                <input type="number" step="0.01" placeholder="方數" value="${volume}" class="truck-volume-input flex-grow bg-gray-800 border-gray-600 rounded-md p-3 text-center text-white font-bold text-xl focus:ring-2 focus:ring-cyan-500 focus:outline-none">
+                <span class="text-gray-400 text-lg">M³</span>
+                <button class="delete-btn bg-red-600 hover:bg-red-700 text-white p-3 rounded-md"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" /></svg></button>
+            `;
+            truckListContainer.appendChild(truckEntry);
+            truckListContainer.scrollTop = truckListContainer.scrollHeight;
+
+            const newInput = truckEntry.querySelector('.truck-volume-input');
+            newInput.addEventListener('input', () => {
+                updateTotals();
+                saveData();
+            });
+            if (volume === '') newInput.focus();
+
+            truckEntry.querySelector('.delete-btn').addEventListener('click', () => {
+                truckEntry.remove();
+                updateTotals();
+                saveData();
+            });
+            updateTotals();
+        }
+        
+        // --- 鎖定/解鎖資訊欄 ---
+        function toggleInfoLock() {
+            isInfoLocked = !isInfoLocked;
+            const infoInputs = mainInfoSection.querySelectorAll('.info-input');
+            
+            if (isInfoLocked) {
+                mainInfoSection.classList.add('space-y-2');
+                mainInfoSection.classList.remove('space-y-4');
+                infoInputs.forEach(input => input.readOnly = true);
+                toggleLockBtn.innerHTML = lockIcon;
             } else {
-                tokenClient.requestAccessToken({prompt: ''});
+                mainInfoSection.classList.add('space-y-4');
+                mainInfoSection.classList.remove('space-y-2');
+                infoInputs.forEach(input => input.readOnly = false);
+                toggleLockBtn.innerHTML = unlockIcon;
             }
+            saveData();
         }
 
-        function handleSignoutClick() {
-            const token = gapi.client.getToken();
-            if (token !== null) {
-                google.accounts.oauth2.revoke(token.access_token);
-                gapi.client.setToken('');
-                loginSection.classList.remove('hidden');
-                appContainer.classList.add('hidden');
-                localStorage.removeItem('dailySettings');
-                allTrucksCache = [];
-                pourLocationStates = {};
-                dailySetupSection.style.display = 'block';
-                mainApp.classList.add('hidden');
-            }
+        // --- 顯示/隱藏 Modal ---
+        function showModal() {
+            copyPreviewModal.style.display = 'flex';
+        }
+        function hideModal() {
+            copyPreviewModal.style.display = 'none';
         }
 
-        async function loadDataFile() {
-            updateSyncStatus('pending');
-            try {
-                const response = await gapi.client.drive.files.list({
-                    q: `name='${DATA_FILE_NAME}' and trashed=false`,
-                    spaces: 'drive',
-                    fields: 'files(id, name)'
-                });
-                if (response.result.files.length > 0) {
-                    fileId = response.result.files[0].id;
-                    const fileContent = await gapi.client.drive.files.get({ fileId: fileId, alt: 'media' });
-                    allTrucksCache = JSON.parse(fileContent.body);
-                } else {
-                    allTrucksCache = []; // No file found, start fresh
-                }
-                updateSyncStatus('synced');
-                loadDailySettings();
-                renderUI();
-            } catch (err) {
-                console.error("讀取檔案失敗", err);
-                updateSyncStatus('error');
+        // --- 事件監聽器 ---
+        addTruckBtn.addEventListener('click', () => {
+            addTruckEntry();
+            saveData();
+        });
+        toggleLockBtn.addEventListener('click', toggleInfoLock);
+        closeModalBtn.addEventListener('click', hideModal);
+        cancelCopyBtn.addEventListener('click', hideModal);
+
+        endTimeEl.addEventListener('input', () => {
+            if (endTimeEl.value) {
+                actualTotalContainer.classList.remove('hidden');
+            } else {
+                actualTotalContainer.classList.add('hidden');
             }
-        }
-
-        async function saveDataFile() {
-            updateSyncStatus('pending');
-            const content = JSON.stringify(allTrucksCache, null, 2);
-            const blob = new Blob([content], { type: 'application/json' });
-
-            const metadata = {
-                'name': DATA_FILE_NAME,
-                'mimeType': 'application/json',
-            };
-
-            const form = new FormData();
-            form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
-            form.append('file', blob);
-
-            let path = '/upload/drive/v3/files';
-            let method = 'POST';
-            if (fileId) {
-                path = `/upload/drive/v3/files/${fileId}`;
-                method = 'PATCH';
-            }
-
-            try {
-                const response = await gapi.client.request({ path, method, body: form });
-                if (!fileId) {
-                    fileId = response.result.id;
-                }
-                updateSyncStatus('synced');
-            } catch (error) {
-                console.error("儲存檔案失敗", error);
-                updateSyncStatus('error');
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            setupEventListeners();
+            saveData();
         });
         
-        function setupEventListeners() {
-            authorize_button.onclick = handleAuthClick;
-            logoutButton.onclick = handleSignoutClick;
-            startDayButton.addEventListener('click', handleStartDay);
-            changeSettingsButton.addEventListener('click', () => {
-                dailySetupSection.style.display = 'block';
-                mainApp.classList.add('hidden');
-            });
-            cancelDepartureButton.addEventListener('click', hideDepartureModal);
-            confirmDepartureButton.addEventListener('click', () => {
-                if (truckIdToDepart) { departTruck(truckIdToDepart); hideDepartureModal(); }
-            });
-            cancelTimeoutButton.addEventListener('click', () => {
-                hideTimeoutModal();
-                document.getElementById('submitButton').disabled = false;
-                document.getElementById('submitButton').textContent = '登記進場';
-            });
-            cancelEditButton.addEventListener('click', hideEditModal);
-            alertModalOkButton.addEventListener('click', hideAlertModal);
-            document.getElementById('addTruckForm').addEventListener('submit', handleFormSubmit);
-            document.getElementById('editTruckForm').addEventListener('submit', handleEditFormSubmit);
-            ['pourLocation', 'volume', 'remarks', 'slump'].forEach(id => document.getElementById(id).addEventListener('input', () => updatePouringStatus()));
-            ['earlySampleCheckbox', 'delaySampleCheckbox'].forEach(id => document.getElementById(id).addEventListener('change', () => updatePouringStatus()));
-            exportButton.addEventListener('click', exportToCsv);
-        }
+        reportDateEl.addEventListener('input', loadData);
+        startTimeEl.addEventListener('click', setNowTime, { once: true });
+        
+        [locationEl, startTimeEl, estimatedTotalEl].forEach(el => {
+            el.addEventListener('input', saveData);
+        });
 
-        function handleStartDay() {
-            const projectName = document.getElementById('dailyProjectName').value.trim();
-            const supplier = document.getElementById('dailySupplier').value.trim();
-            if (!projectName || !supplier) { return showAlertModal('請填寫工程名稱和供應商'); }
-            const today = new Date().toDateString();
-            localStorage.setItem('dailySettings', JSON.stringify({ projectName, supplier, date: today }));
-            showMainApp(projectName, supplier);
-        }
-
-        function loadDailySettings() {
-            const settingsStr = localStorage.getItem('dailySettings');
-            if (settingsStr) {
-                const settings = JSON.parse(settingsStr);
-                if (settings.date === new Date().toDateString()) {
-                    document.getElementById('dailyProjectName').value = settings.projectName;
-                    document.getElementById('dailySupplier').value = settings.supplier;
-                    showMainApp(settings.projectName, settings.supplier);
-                } else { 
-                    localStorage.removeItem('dailySettings');
-                    dailySetupSection.style.display = 'block';
-                    mainApp.classList.add('hidden');
+        resetBtn.addEventListener('click', () => {
+            if (confirm('您確定要清空本日所有資料嗎？')) {
+                localStorage.removeItem(getStorageKey());
+                locationEl.value = '8F柱牆 / 9F樑板區';
+                startTimeEl.value = '';
+                estimatedTotalEl.value = '625';
+                endTimeEl.value = '';
+                endTimeEl.dispatchEvent(new Event('input'));
+                clearTruckList();
+                updateTotals();
+                if (isInfoLocked) {
+                    toggleInfoLock();
                 }
+            }
+        });
+
+        copyBtn.addEventListener('click', () => {
+            const date = reportDateEl.value ? new Date(reportDateEl.value).toLocaleDateString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit' }) : 'N/A';
+            const location = locationEl.value || 'N/A';
+            const startTime = startTimeEl.value || 'N/A';
+            const estimatedTotal = estimatedTotalEl.value || 'N/A';
+            const endTime = endTimeEl.value;
+            const currentTrucks = totalTrucksEl.textContent;
+            const currentVolume = totalVolumeEl.textContent;
+
+            let reportText;
+            if (endTime) {
+                reportText = `
+--- 混凝土澆置【已完成】---
+日期: ${date}
+澆置位置: ${location}
+--------------------
+開始時間: ${startTime}
+完成時間: ${endTime}
+--------------------
+預計總數: ${estimatedTotal} M³
+實際總數: ${currentVolume} M³
+總車次: ${currentTrucks} 車
+                `.trim();
             } else {
-                dailySetupSection.style.display = 'block';
-                mainApp.classList.add('hidden');
+                reportText = `
+--- 混凝土澆置【回報】---
+日期: ${date}
+澆置位置: ${location}
+--------------------
+開始時間: ${startTime}
+本日預計: ${estimatedTotal} M³
+--------------------
+目前進度:
+➡️ 累積出車: ${currentTrucks} 車
+➡️ 累積澆置: ${currentVolume} M³
+                `.trim();
             }
-        }
-
-        function showMainApp(projectName, supplier) {
-            document.getElementById('displayProjectName').textContent = projectName;
-            document.getElementById('displaySupplier').textContent = supplier;
-            dailySetupSection.style.display = 'none';
-            mainApp.classList.remove('hidden');
-        }
-
-        async function handleFormSubmit(e) {
-            e.preventDefault();
-            const form = e.target;
-            const submitButton = form.querySelector('button[type="submit"]');
-            submitButton.disabled = true;
-            submitButton.textContent = '處理中...';
-            const truckData = getTruckDataFromForm(form);
-            const mixingTimeValue = form.mixingTime.value;
-            if (!mixingTimeValue) {
-                showAlertModal('請輸入拌合時間');
-                submitButton.disabled = false;
-                submitButton.textContent = '登記進場';
-                return;
+            // 將要複製的文字附加到 Modal 的 dataset
+            copyPreviewModal.dataset.textToCopy = reportText;
+            reportPreviewContent.textContent = reportText;
+            showModal();
+        });
+        
+        confirmCopyBtn.addEventListener('click', () => {
+            // 從 Modal 的 dataset 讀取文字
+            const textToCopy = copyPreviewModal.dataset.textToCopy || '';
+            const tempTextArea = document.createElement('textarea');
+            tempTextArea.value = textToCopy;
+            document.body.appendChild(tempTextArea);
+            tempTextArea.select();
+            try {
+                document.execCommand('copy');
+                const originalText = confirmCopyBtn.textContent;
+                confirmCopyBtn.textContent = '已複製！';
+                confirmCopyBtn.classList.remove('bg-cyan-600');
+                confirmCopyBtn.classList.add('bg-green-500');
+                setTimeout(() => {
+                    confirmCopyBtn.textContent = originalText;
+                    confirmCopyBtn.classList.remove('bg-green-500');
+                    confirmCopyBtn.classList.add('bg-cyan-600');
+                    hideModal();
+                }, 1500);
+            } catch (err) {
+                console.error('複製失敗: ', err);
+                alert('複製失敗，您的瀏覽器可能不支援此功能。');
             }
-            const now = new Date();
-            const [hours, minutes] = mixingTimeValue.split(':');
-            const mixingTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes);
-            const diffMinutes = (now - now) / 60000;
-            if (diffMinutes > 90) {
-                const isConfirmed = await showTimeoutModal();
-                if (isConfirmed) {
-                    truckData.remarks = `拌合超時; ${truckData.remarks}`;
-                    await saveTruckData(truckData, form);
-                } else {
-                    submitButton.disabled = false;
-                    submitButton.textContent = '登記進場';
-                }
-            } else { await saveTruckData(truckData, form); }
-        }
+            document.body.removeChild(tempTextArea);
+        });
 
-        async function handleEditFormSubmit(e) {
-            e.preventDefault();
-            if (!recordIdToEdit) return;
-            const form = e.target;
-            const submitButton = form.querySelector('button[type="submit"]');
-            submitButton.disabled = true;
-            submitButton.textContent = '儲存中...';
-            const updatedData = {
-                pourLocation: form.edit_pourLocation.value.trim(),
-                truckNumber: form.edit_truckNumber.value.trim(),
-                mixingTime: form.edit_mixingTime.value,
-                volume: parseFloat(form.edit_volume.value) || 0,
-                concreteStrength: form.edit_concreteStrength.value.trim(),
-                slump: form.edit_slump.value.trim(),
-                chloride: form.edit_chloride.value.trim(),
-                temperature: form.edit_temperature.value.trim(),
-                remarks: form.edit_remarks.value.trim(),
-            };
-            await updateTruckRecord(recordIdToEdit, updatedData);
-            hideEditModal();
-            submitButton.disabled = false;
-            submitButton.textContent = '儲存變更';
-        }
-        
-        function getTruckDataFromForm(form) {
-            const dailySettings = JSON.parse(localStorage.getItem('dailySettings'));
-            const pourLocation = form.pourLocation.value.trim();
-            const state = pourLocationStates[pourLocation] || {};
-            const isEarly = form.earlySampleCheckbox.checked;
-            const isSlumpCheck = state.isSlumpCheck;
-            let sampleType = null;
-            if (form.slump.value) {
-                if (state.isMandatoryTail || state.isDelayingTail) { sampleType = 'tail'; } 
-                else if (state.isMandatoryHead || state.isDelayingHead || isSlumpCheck || isEarly) { sampleType = 'head'; }
-            }
-            return {
-                id: `truck_${Date.now()}`,
-                projectName: dailySettings.projectName, supplier: dailySettings.supplier,
-                pourLocation: pourLocation, truckNumber: form.truckNumber.value.trim(),
-                mixingTime: form.mixingTime.value, volume: parseFloat(form.volume.value) || 0,
-                concreteStrength: form.concreteStrength.value.trim(), slump: form.slump.value.trim(),
-                chloride: form.chloride.value.trim(), temperature: form.temperature.value.trim(),
-                remarks: form.remarks.value.trim(), status: 'on-site',
-                arrivalTime: new Date().toISOString(), departureTime: null,
-                earlySample: form.earlySampleCheckbox.checked, delayedSample: form.delaySampleCheckbox.checked,
-                sampleType: sampleType
-            };
-        }
-
-        async function saveTruckData(truckData, form) {
-            allTrucksCache.push(truckData);
-            await saveDataFile();
-            ['truckNumber', 'volume', 'remarks', 'slump', 'chloride', 'temperature', 'mixingTime'].forEach(id => form[id].value = '');
-            ['earlySampleCheckbox', 'delaySampleCheckbox'].forEach(id => form[id].checked = false);
-            renderUI();
-            const submitButton = form.querySelector('button[type="submit"]');
-            if (submitButton) { submitButton.disabled = false; submitButton.textContent = '登記進場'; }
-        }
-
-        async function updateTruckRecord(docId, updatedData) {
-            const recordIndex = allTrucksCache.findIndex(t => t.id === docId);
-            if(recordIndex > -1) {
-                allTrucksCache[recordIndex] = { ...allTrucksCache[recordIndex], ...updatedData };
-                await saveDataFile();
-                renderUI();
-            }
-        }
-        
-        async function departTruck(docId) {
-            const recordIndex = allTrucksCache.findIndex(t => t.id === docId);
-            if(recordIndex > -1) {
-                allTrucksCache[recordIndex].status = 'departed';
-                allTrucksCache[recordIndex].departureTime = new Date().toISOString();
-                await saveDataFile();
-                renderUI();
-            }
-        }
-        
-        function initializePourLocationState(location, allTrucks) {
-            if (!pourLocationStates[location]) { pourLocationStates[location] = {}; }
-            const state = pourLocationStates[location];
-            const today = new Date().toDateString();
-            const locationTrucksToday = allTrucks.filter(t => t.pourLocation === location && new Date(t.arrivalTime).toDateString() === today).sort((a, b) => new Date(a.arrivalTime) - new Date(b.arrivalTime));
-            Object.assign(state, { headSamplesTaken: 0, tailSamplesTaken: 0, headSamplesSkipped: 0, tailSamplesSkipped: 0, isDelayingHead: false, isDelayingTail: false, slumpCheckDone: false });
-            let cumulativeVolume = 0, requiredHead = 0, requiredTail = 0;
-            locationTrucksToday.forEach(truck => {
-                const hasSampleData = truck.slump && (truck.chloride || truck.temperature);
-                if(truck.earlySample && hasSampleData) {
-                    if(state.headSamplesTaken <= state.tailSamplesTaken) { state.headSamplesTaken++; state.headSamplesSkipped++; } 
-                    else { state.tailSamplesTaken++; state.tailSamplesSkipped++; }
-                }
-                let newRequiredHead = Math.floor(cumulativeVolume / 100);
-                let newRequiredTail = Math.floor(cumulativeVolume / 300);
-                if (newRequiredHead > requiredHead) {
-                    if (state.headSamplesSkipped > 0) state.headSamplesSkipped--;
-                    else if (truck.delayedSample) state.isDelayingHead = true;
-                    else if (hasSampleData) { state.headSamplesTaken++; state.isDelayingHead = false; }
-                }
-                if (newRequiredTail > requiredTail) {
-                    if (state.tailSamplesSkipped > 0) state.tailSamplesSkipped--;
-                    else if (truck.delayedSample) state.isDelayingTail = true;
-                    else if (hasSampleData) { state.tailSamplesTaken++; state.isDelayingTail = false; }
-                }
-                if (truck.slump) state.slumpCheckDone = true;
-                cumulativeVolume += truck.volume || 0;
-                requiredHead = newRequiredHead;
-                requiredTail = newRequiredTail;
-            });
-            return state;
-        }
-
-        function renderUI() {
-            const onSiteTrucks = allTrucksCache.filter(t => t.status === 'on-site').sort((a, b) => new Date(a.arrivalTime) - new Date(b.arrivalTime));
-            const departedTrucks = allTrucksCache.filter(t => t.status !== 'on-site').sort((a, b) => new Date(b.departureTime) - new Date(a.departureTime));
-            renderOnSiteTable(onSiteTrucks);
-            renderHistoryTable(departedTrucks);
-            updatePouringStatus();
-        }
-        
-        function updatePouringStatus() {
-            const dailySettings = JSON.parse(localStorage.getItem('dailySettings'));
-            if (!dailySettings) return;
-            const pourLocation = document.getElementById('pourLocation').value.trim();
-            const volumeSpan = document.getElementById('totalVolumeToday'), alertsDiv = document.getElementById('specimenAlerts');
-            const slumpField = document.getElementById('slumpField'), otherSamplingFields = document.getElementById('otherSamplingFields');
-            const slumpInput = document.getElementById('slump'), chlorideInput = document.getElementById('chloride');
-            const samplingOptions = document.getElementById('samplingOptions'), slumpCheckReminder = document.getElementById('slumpCheckReminder'), delayedSampleReminder = document.getElementById('delayedSampleReminder');
-            if (!pourLocation) { volumeSpan.textContent = '0 m³'; alertsDiv.innerHTML = ''; return; }
-            const today = new Date().toDateString();
-            const locationTrucksToday = allTrucksCache.filter(t => t.pourLocation === pourLocation && new Date(t.arrivalTime).toDateString() === today);
-            const truckCount = locationTrucksToday.length;
-            const previousTotalVolume = locationTrucksToday.reduce((sum, t) => sum + (t.volume || 0), 0);
-            const state = initializePourLocationState(pourLocation, allTrucksCache);
-            volumeSpan.textContent = `${previousTotalVolume.toFixed(2)} m³`;
-            const isFirstTruck = truckCount === 0, remarks = document.getElementById('remarks').value, isLubricationPipe = remarks.includes('潤管');
-            const showSlumpCheck = isFirstTruck && !isLubricationPipe && !state.slumpCheckDone;
-            state.isSlumpCheck = showSlumpCheck;
-            const showSlumpReminder = (truckCount < 5 || isFirstTruck) && !isLubricationPipe && !state.slumpCheckDone;
-            slumpCheckReminder.classList.toggle('hidden', !showSlumpReminder);
-            const currentEntryVolume = parseFloat(document.getElementById('volume').value) || 0;
-            const prospectiveTotalVolume = previousTotalVolume + currentEntryVolume;
-            let requiredHead = Math.floor(previousTotalVolume / 100), requiredTail = Math.floor(previousTotalVolume / 300);
-            let prospectiveHead = Math.floor(prospectiveTotalVolume / 100), prospectiveTail = Math.floor(prospectiveTotalVolume / 300);
-            state.isMandatoryHead = prospectiveHead > requiredHead && state.headSamplesSkipped === 0;
-            state.isMandatoryTail = prospectiveTail > requiredTail && state.tailSamplesSkipped === 0;
-            const isEarlySample = document.getElementById('earlySampleCheckbox').checked, isDelayingSample = document.getElementById('delaySampleCheckbox').checked;
-            const isMandatory = state.isMandatoryHead || state.isMandatoryTail || state.isDelayingHead || state.isDelayingTail;
-            samplingOptions.classList.toggle('hidden', !isMandatory && !isEarlySample);
-            const showAllSampleFields = (isMandatory && !isDelayingSample) || isEarlySample;
-            slumpField.classList.toggle('hidden', !showAllSampleFields && !showSlumpCheck);
-            otherSamplingFields.classList.toggle('hidden', !showAllSampleFields);
-            slumpInput.required = showAllSampleFields; chlorideInput.required = showAllSampleFields;
-            delayedSampleReminder.classList.toggle('hidden', !state.isDelayingHead && !state.isDelayingTail);
-            alertsDiv.innerHTML = `<div class="p-2 rounded-md bg-blue-100 text-blue-800">應取管頭試體組數：${state.headSamplesTaken}/${requiredHead+1}</div><div class="p-2 rounded-md bg-yellow-100 text-yellow-800 mt-2">應取管尾試體組數：${state.tailSamplesTaken}/${requiredTail+1}</div>`;
-        }
-        
-        function renderOnSiteTable(data) {
-            const tableBody = document.getElementById('onSiteTableBody');
-            if (data.length === 0) { return updateTableBody('onSiteTableBody', 5, '目前沒有車輛在場內。'); }
-            tableBody.innerHTML = data.map(item => `
-                <tr class="bg-white border-b hover:bg-gray-50">
-                    <td class="px-4 py-4 font-medium text-gray-900">${item.truckNumber}</td><td class="px-4 py-4">${item.pourLocation}</td><td class="px-4 py-4">${item.volume} m³</td>
-                    <td class="px-4 py-4">${new Date(item.arrivalTime).toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' })}</td>
-                    <td class="px-4 py-4 flex items-center gap-2">
-                        <button data-id="${item.id}" class="btn edit-btn text-blue-600 hover:text-blue-800 p-1"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd" /></svg></button>
-                        <button data-id="${item.id}" data-truck-number="${item.truckNumber}" class="btn depart-btn bg-red-500 hover:bg-red-600 text-white text-xs font-bold py-2 px-3 rounded-md">離場</button>
-                    </td>
-                </tr>`).join('');
-            document.querySelectorAll('.depart-btn').forEach(button => button.addEventListener('click', (e) => showDepartureModal(e.currentTarget.dataset.id, e.currentTarget.dataset.truckNumber)));
-            document.querySelectorAll('.edit-btn').forEach(button => button.addEventListener('click', (e) => showEditModal(e.currentTarget.dataset.id)));
-        }
-        
-        function renderHistoryTable(data) {
-            const tableBody = document.getElementById('historyTableBody');
-            if (data.length === 0) { return updateTableBody('historyTableBody', 6, '目前沒有離場紀錄。'); }
-            tableBody.innerHTML = data.map(item => {
-                const arrival = new Date(item.arrivalTime), departure = item.departureTime ? new Date(item.departureTime) : null;
-                const dwellTime = (arrival && departure) ? `${Math.round((departure - arrival) / 60000)} 分鐘` : 'N/A';
-                return `
-                <tr class="bg-white border-b hover:bg-gray-50">
-                    <td class="px-4 py-4 font-medium text-gray-900">${item.truckNumber}</td><td class="px-4 py-4">${item.pourLocation}</td>
-                    <td class="px-4 py-4">${arrival.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' })}</td>
-                    <td class="px-4 py-4">${departure ? departure.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' }) : 'N/A'}</td>
-                    <td class="px-4 py-4 font-semibold">${dwellTime}</td>
-                    <td class="px-4 py-4 flex items-center gap-2">
-                        <span class="text-xs max-w-[100px] truncate" title="${item.remarks || ''}">${item.remarks || '-'}</span>
-                        <button data-id="${item.id}" class="btn edit-btn text-blue-600 hover:text-blue-800 p-1"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd" /></svg></button>
-                    </td>
-                </tr>`;
-            }).join('');
-            document.querySelectorAll('.edit-btn').forEach(button => button.addEventListener('click', (e) => showEditModal(e.currentTarget.dataset.id)));
-        }
-
-        function updateTableBody(bodyId, colSpan, message) { document.getElementById(bodyId).innerHTML = `<tr><td colspan="${colSpan}" class="text-center p-6 text-gray-500">${message}</td></tr>`; }
-        function showDepartureModal(docId, truckNumber) {
-            truckIdToDepart = docId;
-            document.getElementById('modalTruckInfo').textContent = `是否確認車號「${truckNumber}」離場？`;
-            departureModal.classList.remove('hidden');
-            setTimeout(() => departureModal.querySelector('.modal-content').classList.replace('scale-95', 'scale-100'), 10);
-        }
-        function hideDepartureModal() {
-            truckIdToDepart = null;
-            departureModal.querySelector('.modal-content').classList.replace('scale-100', 'scale-95');
-            setTimeout(() => departureModal.classList.add('hidden'), 300);
-        }
-        async function showTimeoutModal() {
-            return new Promise((resolve) => {
-                timeoutModal.classList.remove('hidden');
-                setTimeout(() => timeoutModal.querySelector('.modal-content').classList.replace('scale-95', 'scale-100'), 10);
-                confirmTimeoutButton.onclick = () => { hideTimeoutModal(); resolve(true); };
-                cancelTimeoutButton.onclick = () => { hideTimeoutModal(); resolve(false); };
-            });
-        }
-        function hideTimeoutModal() {
-            timeoutModal.querySelector('.modal-content').classList.replace('scale-100', 'scale-95');
-            setTimeout(() => timeoutModal.classList.add('hidden'), 300);
-        }
-        function showEditModal(docId) {
-            recordIdToEdit = docId;
-            const record = allTrucksCache.find(t => t.id === docId);
-            if (!record) return;
-            const form = document.getElementById('editTruckForm');
-            form.edit_pourLocation.value = record.pourLocation || '';
-            form.edit_truckNumber.value = record.truckNumber || '';
-            form.edit_mixingTime.value = record.mixingTime || '';
-            form.edit_volume.value = record.volume || '';
-            form.edit_concreteStrength.value = record.concreteStrength || '';
-            form.edit_slump.value = record.slump || '';
-            form.edit_chloride.value = record.chloride || '';
-            form.edit_temperature.value = record.temperature || '';
-            form.edit_remarks.value = record.remarks || '';
-            editModal.classList.remove('hidden');
-            setTimeout(() => editModal.querySelector('.modal-content').classList.replace('scale-95', 'scale-100'), 10);
-        }
-        function hideEditModal() {
-            recordIdToEdit = null;
-            editModal.querySelector('.modal-content').classList.replace('scale-100', 'scale-95');
-            setTimeout(() => editModal.classList.add('hidden'), 300);
-        }
-        function showAlertModal(message, title = '提示') {
-            document.getElementById('alertModalTitle').textContent = title;
-            document.getElementById('alertModalMessage').textContent = message;
-            alertModal.classList.remove('hidden');
-            setTimeout(() => alertModal.querySelector('.modal-content').classList.replace('scale-95', 'scale-100'), 10);
-        }
-        function hideAlertModal() {
-            alertModal.querySelector('.modal-content').classList.replace('scale-100', 'scale-95');
-            setTimeout(() => alertModal.classList.add('hidden'), 300);
-        }
-        function updateSyncStatus(status) {
-            const statusText = document.getElementById('syncStatusText');
-            const statusDot = document.querySelector('#syncStatus .status-dot');
-            const statusMap = {
-                synced: { text: '所有變更已儲存', color: 'bg-green-500' },
-                pending: { text: '儲存中...', color: 'bg-yellow-400' },
-                error: { text: '連線錯誤', color: 'bg-red-500' }
-            };
-            statusDot.className = `status-dot ${statusMap[status].color}`;
-            statusText.textContent = statusMap[status].text;
-        }
-        function exportToCsv() {
-            const dailySettings = JSON.parse(localStorage.getItem('dailySettings'));
-            if (!dailySettings) { return showAlertModal('沒有設定今日工班，無法匯出'); }
-            const today = new Date().toDateString();
-            const recordsToExport = allTrucksCache.filter(t => new Date(t.arrivalTime).toDateString() === today && t.projectName === dailySettings.projectName);
-            if (recordsToExport.length === 0) { return showAlertModal('今日尚無任何離場紀錄可匯出'); }
-            recordsToExport.sort((a,b) => new Date(a.arrivalTime) - new Date(b.arrivalTime));
-            const headers = ['車次', '車號', '混凝土數量(M3)本車', '混凝土數量(M3)累計', '拌合時間', '到場灌注時間', '澆置區域', '試體編號', '管頭', '管尾', '坍度(cm)', '氯離子(kg/m3)', '溫度(℃)', '備註'];
-            let cumulativeVolume = 0;
-            let testSampleCounter = 0;
-            const rows = recordsToExport.map((item, index) => {
-                cumulativeVolume += item.volume || 0;
-                const arrival = new Date(item.arrivalTime);
-                let sampleId = '', isHead = '', isTail = '';
-                if (item.slump) {
-                    testSampleCounter++;
-                    sampleId = testSampleCounter;
-                    if (item.sampleType === 'tail') {
-                        isTail = 'V';
-                    } else { 
-                        isHead = 'V';
-                    }
-                }
-                return [
-                    index + 1, item.truckNumber, item.volume, cumulativeVolume.toFixed(2),
-                    item.mixingTime || '', arrival.toLocaleTimeString('zh-TW', { hour12: false }),
-                    item.pourLocation, 
-                    sampleId, isHead, isTail,
-                    item.slump || '', item.chloride || '', item.temperature || '',
-                    `"${(item.remarks || '').replace(/"/g, '""')}"`
-                ];
-            });
-            let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
-            csvContent += headers.join(',') + '\r\n';
-            rows.forEach(rowArray => { csvContent += rowArray.join(',') + '\r\n'; });
-            const encodedUri = encodeURI(csvContent);
-            const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            const dateStr = new Date().toISOString().slice(0, 10);
-            link.setAttribute("download", `澆置紀錄表_${dailySettings.projectName}_${dateStr}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
+        // --- 初始載入 ---
+        initializeApp();
     </script>
-    <script async defer src="https://apis.google.com/js/api.js" onload="gapiLoaded()"></script>
-    <script async defer src="https://accounts.google.com/gsi/client" onload="gisLoaded()"></script>
 </body>
 </html>
-
